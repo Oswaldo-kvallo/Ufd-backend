@@ -1,0 +1,8 @@
+Array
+(
+    [id_area] => 1
+    [nombre_area] => Área Actualizada26795
+    [id] => 1
+    [nombre_usuario] => bur0004
+    [contrasena] => 555550
+)
