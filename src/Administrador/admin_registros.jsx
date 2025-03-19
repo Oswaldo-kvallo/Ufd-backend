@@ -27,21 +27,78 @@ const AdminRegistros = () => {
     const [accesos, setAccesos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [accesosFiltrados, setAccesosFiltrados] = useState([]);
+
 
     useEffect(() => {
-      const fetchData = async () => {
+      const cargarAccesos = async () => {
         try {
+          setLoading(true);
+          // Usamos el servicio que ya hemos corregido en api.js
           const data = await accessService.getUserAccess();
+          console.log("Accesos recibidos:", data);
           setAccesos(data);
+          setAccesosFiltrados(data); // Inicialmente todos los accesos están visibles
+          setError(null);
         } catch (err) {
-          setError(err.message);
+          console.error("Error al obtener accesos:", err);
+          setError(err.message || "Error al cargar los accesos");
         } finally {
           setLoading(false);
         }
       };
-    
-      fetchData();
-    }, []);
+  
+      cargarAccesos();
+    }, []); // Solo se ejecuta al montar el componente
+  
+    // Aplicar filtros cuando cambien los valores de los filtros
+    useEffect(() => {
+      if (!accesos.length) return; // No hacer nada si no hay accesos
+  
+      let resultado = [...accesos];
+  
+      // Filtrar por área
+      if (area) {
+        resultado = resultado.filter(acceso => 
+          acceso.area && acceso.area.toLowerCase().includes(area.toLowerCase())
+        );
+      }
+  
+      // Filtrar por usuario
+      if (usuario) {
+        resultado = resultado.filter(acceso => 
+          acceso.usuario && acceso.usuario.toLowerCase().includes(usuario.toLowerCase())
+        );
+      }
+  
+  // Modificación al filtrado por fecha
+  if (dia || mes || año) {
+    resultado = resultado.filter(acceso => {
+      if (!acceso.fecha_ingreso || acceso.fecha_ingreso === "En sesión") return false;
+      
+      try {
+        // Obtener solo la parte de la fecha (antes de la coma)
+        let fechaParts = acceso.fecha_ingreso.split(',')[0]; // Obtiene "14/2/2025"
+        
+        // Dividir por / en lugar de -
+        let [day, month, year] = fechaParts.split('/').map(num => parseInt(num, 10));
+        
+        // Realizar comparaciones
+        if (dia && parseInt(dia, 10) !== day) return false;
+        if (mes && parseInt(mes, 10) !== month) return false;
+        if (año && parseInt(año, 10) !== year) return false;
+        
+        return true;
+      } catch (error) {
+        console.error("Error al procesar fecha:", error, acceso.fecha_ingreso);
+        return false;
+      }
+    });
+  }
+
+  
+      setAccesosFiltrados(resultado);
+    }, [area, usuario, dia, mes, año, accesos]); 
     
 
   return (
@@ -149,6 +206,7 @@ const AdminRegistros = () => {
                 <th className='border-2 border-basenaranja w-[10%]'>ID</th>
                 <th className='border-2 border-basenaranja w-[20%]'>Área</th>
                 <th className='border-2 border-basenaranja w-[20%]'>Usuario</th>
+                <th className='border-2 border-basenaranja w-[20%]'>Rol</th>
                 <th className='border-2 border-basenaranja w-[25%]'>Registro de ingreso</th>
                 <th className='border-2 border-basenaranja w-[25%]'>Regitro de salida</th>
 
@@ -169,11 +227,12 @@ const AdminRegistros = () => {
     </tr>
   ) : accesos.length > 0 ? (
     <>
-      {accesos.map((acceso, index) => (
+      {accesosFiltrados.map((acceso, index) => (
         <tr key={index}>
           <td className='border-2 border-basenaranja'>{acceso.id}</td>
           <td className='border-2 border-basenaranja'>{acceso.area}</td>
           <td className='border-2 border-basenaranja'>{acceso.usuario}</td>
+          <td className='border-2 border-basenaranja'>{acceso.rol || "Sin rol"}</td>
           <td className='border-2 border-basenaranja'>{acceso.fecha_ingreso}</td>
           <td className='border-2 border-basenaranja'>{acceso.fecha_salida}</td>
         </tr>

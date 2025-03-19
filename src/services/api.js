@@ -16,19 +16,27 @@ const fetchWithAuth = async (endpoint, options = {}) => { //agregare url dentro 
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` })
     };
-
+    //5 de marzo
+    console.log("areas/editar_area2.php", `${API_BASE_URL}${endpoint}`);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       //28 de enero cree esto
       credentials: 'include', // 🔥 Envía cookies con la solicitud
       headers: { ...defaultHeaders, ...options.headers }
     });
-
-    const data = await response.json();
+    //5 de marzo
+    // Verificamos si la respuesta es exitosa
     if (!response.ok) {
-      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      const errorData = await response.text(); // Leer la respuesta como texto para manejar posibles errores
+      throw new Error(errorData || `HTTP error! status: ${response.status}`);
     }
 
+    // Intentamos parsear la respuesta como JSON
+    const data = await response.json();
+    /*const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }*/
     return data;
   } catch (error) {
     console.error('Error en fetchWithAuth:', error);
@@ -138,26 +146,52 @@ export const authService = {
 }, 
 logout: async () => {
   try {
-    const response = await fetchWithAuth('login3/logout.php', {
-      method: 'GET' //'POST' estaba antes
+    console.log("Enviando solicitud de logout al servidor...");
+    console.log("Cookies antes del logout:", document.cookie); // 🔥 Ver si la cookie de sesión está presente
+
+    const response = await fetch(`${API_BASE_URL}login3/logout.php`, {
+      method: 'POST',
+      credentials: 'include'  // Asegurar que se envíen cookies
     });
-    
-    if (response.success) {
-      // Limpiamos el almacenamiento local
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userName');
-      //modificacion para autenticar
-      localStorage.removeItem('userId');
-      localStorage.removeItem('authToken'); // ✅ Elimina el token(Moificado con chat)
-      //return response;
-    } /*else {
-      throw new Error(response.message);
-    }*/
+
+    const text = await response.text();
+    console.log("🔍 Respuesta completa del backend:", text);
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (error) {
+      console.error("❌ No se pudo parsear JSON:", error);
+      throw new Error("Respuesta del servidor no es JSON válido");
+    }
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    console.log("Logout exitoso:", data);
+
+    localStorage.clear();
+    return data;
   } catch (error) {
-    console.error('Error en logout:', error);
+    console.error("❌ Error en logout:", error);
+    localStorage.clear();
     throw error;
   }
 },
+checkSession: async () => {
+  try {
+    const response = await fetchWithAuth('login3/auth.php', {
+      method: 'GET'
+    });
+    console.log("🔍 Estado de sesión después del logout:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ No se pudo verificar sesión después del logout:", error);
+  }
+}
+
+
 
   
   // Cerrar sesión y eliminar token (agregue una funcion dentro de los parentesis despues de async)
@@ -293,7 +327,8 @@ export const areaService = {
   getAreas: async () => {
     try {
       const response = await fetchWithAuth('areas/obtener_areas.php', {
-        method: 'GET'
+        method: 'GET',
+        credentials: 'include',
       });
   
       if (!response.success) {
@@ -376,12 +411,12 @@ export const areaService = {
  //Nuevo espero y funciones 27 de febrero
  updateUserAndArea: async (userData, areaData) => {
   if (!areaData.id_area) throw new Error("El ID del área es obligatorio");
-  if (!userData.id) throw new Error("El ID del usuario es obligatorio");
+  if (!userData.id_usuario) throw new Error("El ID del usuario es obligatorio"); // 🔥 Cambiado a id_usuario
 
   const payload = {
     id_area: areaData.id_area,
     nombre_area: areaData.nombre_area?.trim() || null,
-    id: userData.id,
+    id_usuario: userData.id_usuario, // 🔥 Ahora envía id_usuario
     nombre_usuario: userData.nombre_usuario?.trim() || null,
     contrasena: userData.contrasena || null,
   };
@@ -389,77 +424,82 @@ export const areaService = {
   console.log("📌 Enviando datos desde frontend:", payload);
 
   try {
-    const response = await fetch("http://localhost/2da%20copia%20backend/backend/areas/editar_area2.php", {
+    const response = await fetchWithAuth('areas/editar_area2.php', {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status}`);
+    if (!response) throw new Error("No se recibió respuesta del servidor");
+
+    console.log("📌 Respuesta de fetchWithAuth:", response);
+
+    if (!response.success) {
+      throw new Error(response.message || "Error al actualizar usuario y área");
     }
 
-    const result = await response.json();
+    return response;
 
-    if (!result.success) {
-      throw new Error(result.message || "Error al actualizar usuario y área");
-    }
-
-    return result;
   } catch (error) {
     console.error("❌ Error al actualizar usuario y área:", error);
     throw error;
   }
 },
-  
+ 
 };
 
 /**
  * Servicios de accesos
  */
-export const accessService = {
-  getUserAccess: async () => {
-    try {
-      const response = await fetchWithAuth('accesos/obtener_accesos.php', {
-        method: 'GET'
-      });
 
-      if (!response.success) {
-        throw new Error(response.message || 'Error al obtener los accesos');
+  export const accessService = {
+    getUserAccess: async () => {
+      try {
+        const response = await fetchWithAuth('accesos/obtener_accesos.php', {
+          method: 'GET'
+        });
+  
+        if (!response.success) {
+          throw new Error(response.message || 'Error al obtener los accesos');
+        }
+  
+        // Procesar las fechas para asegurar formato consistente
+        const accesosFormateados = response.accesos.map(acceso => {
+          // Función segura para formatear fechas
+          const formatearFecha = (fechaStr) => {
+            if (!fechaStr || fechaStr === "null") return 'En sesión';
+            
+            try {
+              const fecha = new Date(fechaStr);
+              // Verificar que la fecha sea válida
+              return isNaN(fecha.getTime()) ? fechaStr : fecha.toLocaleString();
+            } catch (err) {
+              console.warn(`Error al formatear fecha: ${fechaStr}`, err);
+              return fechaStr; // Devolver la cadena original si hay error
+            }
+          };
+  
+          return {
+            id: acceso.id,
+            usuario: acceso.nombre_usuario || 'Desconocido',
+            area: acceso.nombre_area || 'Sin área',
+            rol: acceso.rol || 'No especificado', // Asegúrate de incluir el rol
+            fecha_ingreso: formatearFecha(acceso.fecha_ingreso),
+            fecha_salida: formatearFecha(acceso.fecha_salida)
+          };
+        });
+  
+        return accesosFormateados;
+      } catch (error) {
+        console.error('Error al obtener accesos:', error);
+        throw error;
       }
-
-      // Procesar las fechas para asegurar formato consistente
-      const accesosFormateados = response.accesos.map(acceso => ({
-        id: acceso.id,
-    usuario: acceso.nombre_usuario || 'Desconocido', // Asegurar que nunca sea undefined
-    area: acceso.nombre_area || 'Sin área',
-        //...acceso,
-        /*fecha_ingreso: new Date(acceso.fecha_ingreso),
-        fecha_salida: new Date(acceso.fecha_salida) */ //Este es al antiguo comando sirve
-        //Este es con chat, 28 de febrero lo quite y puse otro nuevo
-        /*fecha_ingreso: new Date(acceso.fecha_ingreso).toISOString(), // Para backend
-        fecha_salida: new Date(acceso.fecha_salida).toLocaleString(), // Para UI*/
-        fecha_ingreso: acceso.fecha_ingreso ? new Date(acceso.fecha_ingreso).toISOString() : null,
-        //Modificacion fecha_salida: acceso.fecha_salida ? new Date(acceso.fecha_salida).toLocaleString() : 'En sesión',
-        fecha_salida: acceso.fecha_salida && acceso.fecha_salida !== "null" 
-  ? new Date(acceso.fecha_salida).toLocaleString() 
-  : 'En sesión',
-
-      }));
-
-      return accesosFormateados;
-    } catch (error) {
-      console.error('Error al obtener accesos:', error);
-      throw error;
-    }
-  },
-
+    },
   getAdminAccess: async () => {
     try {
       const response = await fetchWithAuth('accesos/accesosadmin.php', {
-        method: 'GET'
+        method: 'GET',
+        credentials: 'include',
       });
 
       if (!response.success) {
