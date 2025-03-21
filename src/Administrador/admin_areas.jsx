@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"; //agregue esto: useEffect,
 import {areaService} from '../services/api';
 //importar axios
 import axios from 'axios';
+import NavigationMenu from './NavigationMenu';
 
 {/* Iconos */}
 import { FaHome } from "react-icons/fa";
@@ -218,34 +219,7 @@ const AdminAreas = () => {
       {/* Menú */}
       <div className="w-screen h-screen bg-baseazul flex">
         <div className='w-[6%] h-screen bg-baseazul flex items-center justify-center relative'> 
-          <div className="action-wrap z-10 flex flex-col items-start absolute">
-            <Link to={'/admin_inicio'} className="action" type="button">
-              <FaHome className="action-icon" color="#353866" />
-              <span className="action-content" data-content="Inicio" />
-            </Link>
-            
-            <Link to={'/admin_areas'} className="action" type="button">
-              <TfiWorld className="action-icon" color="#353866" />
-              <span className="action-content" data-content="Áreas" />
-            </Link>
-            
-            <Link to={'/admin_acceso'} className="action" type="button">
-              <RxLapTimer className="action-icon" color="#353866" />
-              <span className="action-content" data-content="Mis Accesos" />
-            </Link>
-
-            <Link to={'/admin_registros'} className="action" type="button">
-              <FaUsers className="action-icon" color="#353866" />
-              <span className="action-content" data-content="Registro de Accesos" />
-            </Link>
-            
-            <Link to={'/'} className="action" type="button">
-              <RiLogoutCircleLine className="action-icon" color="#353866" />
-              <span className="action-content" data-content="Salir" />
-            </Link>
-            
-            <div className="backdrop" />
-          </div>
+          <NavigationMenu />
         </div>
 
         {/* Titulo */}
