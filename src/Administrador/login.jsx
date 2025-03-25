@@ -25,27 +25,25 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      // Llamamos al servicio de login
       const response = await authService.login(nombre_usuario, contrasena);
-      console.log(response);//lo agregue si no funciona borrar
-      //Modificacion
-      
-      // Si la respuesta es exitosa, redirigimos
+      console.log(response); // Para depuración
+  
       if (response.success) {
-        // Si la autenticación es exitosa, almacenar los datos en localStorage
-        localStorage.setItem('token', response.token);  // Guarda el token (Nueva implementacion)  
-      localStorage.setItem('userRole', response.rol);
-      localStorage.setItem('userName', response.nombre_usuario);
-      localStorage.setItem('userId', response.usuario_id);
+        // Guardamos datos en localStorage solo si es administrador
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('userRole', response.rol);
+        localStorage.setItem('userName', response.nombre_usuario);
+        localStorage.setItem('userId', response.usuario_id);
+  
         navigate('/admin_inicio');
       } else {
-        setErrorMessage('Usuario o contraseña incorrectos');
+        setErrorMessage(response.message);
       }
     } catch (error) {
-      // Si ocurre un error, mostramos un mensaje de error
-      setErrorMessage('Usuario o contraseña incorrectos');
+      setErrorMessage('Error en la autenticación. Intente nuevamente.');
     }
   };
+  
 
   return (
     <div>
