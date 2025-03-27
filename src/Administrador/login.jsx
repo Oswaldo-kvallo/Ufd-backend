@@ -1,7 +1,8 @@
 import React, { useState } from 'react';//Le agregue esto , { useState }
 import '../StylesAdmin/login.css';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/api'; //Le implemente esto
+import { authService } from '../services/authService'; //Le implemente esto
+
 /*import { useHistory } from 'react-router-dom';*///Le implemente esto
 
 // Iconos
@@ -29,13 +30,20 @@ const Login = () => {
       console.log(response); // Para depuración
   
       if (response.success) {
-        // Guardamos datos en localStorage solo si es administrador
+        // Guardamos datos en localStorage
         localStorage.setItem('token', response.token);
         localStorage.setItem('userRole', response.rol);
         localStorage.setItem('userName', response.nombre_usuario);
         localStorage.setItem('userId', response.usuario_id);
   
-        navigate('/admin_inicio');
+        // Redirigir según el rol
+        if (response.rol === 'Administrador') {
+          navigate('/admin_inicio');
+        } else if (response.rol === 'Alimentador') {
+          navigate('/alimentador_inicio');
+        } else {
+          setErrorMessage('Rol no autorizado.');
+        }
       } else {
         setErrorMessage(response.message);
       }
@@ -43,6 +51,7 @@ const Login = () => {
       setErrorMessage('Error en la autenticación. Intente nuevamente.');
     }
   };
+  
   
 
   return (

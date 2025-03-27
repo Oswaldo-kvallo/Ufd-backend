@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useCallback } from 'react';
+import { useNavigate } from "react-router-dom";
 import '../StylesAlimentador/alimentador_recopilacion.css'
-
 import { Link } from 'react-router-dom';
 
 {/* Iconos Menu */}
@@ -17,6 +17,60 @@ import { CiLink } from "react-icons/ci";
 import { TbTextRecognition } from "react-icons/tb";
 
 const AlimentadorRecopilacion = () => {
+  console.log("🔥 Alimentador Inicio se ha renderizado!");
+    const navigate = useNavigate();
+  
+    // 🔥 useCallback para evitar recreación innecesaria
+    const handleLogout = useCallback(async () => {
+      console.log("🔥 handleLogout() fue llamado!");
+  
+      try {
+        console.log("🔍 Verificando sesión antes de cerrar...");
+        const authResponse = await fetch('http://localhost/2da%20copia%20backend/backend/login3/auth.php', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+  
+        console.log("🔍 authResponse recibido:", authResponse);
+        if (!authResponse.ok) throw new Error("Error en la autenticación");
+  
+        const authResult = await authResponse.json();
+        console.log("🔍 authResult:", authResult);
+  
+        if (!authResult.success) {
+          alert("No hay sesión activa.");
+          return;
+        }
+  
+        console.log("✅ Sesión activa, procediendo con logout...");
+  
+        const logoutResponse = await fetch('http://localhost/2da%20copia%20backend/backend/login3/logout.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+  
+        console.log("🔍 Respuesta del logout:", logoutResponse);
+        if (!logoutResponse.ok) throw new Error("Error en el logout");
+  
+        const logoutResult = await logoutResponse.json();
+        console.log("✅ Respuesta JSON del logout:", logoutResult);
+  
+        if (logoutResult.success) {
+          alert(logoutResult.message);
+          localStorage.removeItem('userRole'); // 🔥 Asegurar limpiar localStorage
+          navigate('/'); // 🔥 Redirigir correctamente con React Router
+        } else {
+          alert("❌ Error en logout: " + logoutResult.message);
+        }
+  
+      } catch (error) {
+        console.error("❌ Error en logout:", error);
+        alert("Hubo un error al intentar cerrar sesión.");
+      }
+    }, [navigate]); // ✅ Dependencia correcta para mantener la referencia
+  
   return (
     <div>
         <div className='w-screen h-screen bg-baseazul flex'>
@@ -45,7 +99,7 @@ const AlimentadorRecopilacion = () => {
               <span className="action-content" data-content="Categorias" />
             </Link>
 
-            <Link to={'/alimentador_login'} className="action" type="button">
+            <Link className="action" onClick={handleLogout} type="button">
               <RiLogoutCircleLine className="action-icon" color="#353866" />
               <span className="action-content" data-content="Salir" />
             </Link>
