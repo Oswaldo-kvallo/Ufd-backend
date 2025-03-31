@@ -113,7 +113,7 @@ const AdminAreas = () => {
         nombre_area: area.nombre_area || "SIN_NOMBRE",
         nombre_usuario: area.nombre_usuario || "SIN_USUARIO",
         contrasena: area.contrasena || "",
-        estado: area.estado || "activo", // Asegurarnos de que el estado tiene un valor por defecto
+        estado: area.estado_usuario || "activo", // Asegurarnos de que el estado tiene un valor por defecto
       }));
       setAreas(areasNormalizadas);
       setFilteredAreas(areasNormalizadas); // Inicializar también las áreas filtradas
@@ -181,39 +181,55 @@ const AdminAreas = () => {
   };
   
   // Función para manejar el cambio de estado (activo/inactivo)
-  const handleRadioChange = async (id, estado) => {
+  const handleRadioChange = async (id_usuario, nuevoEstado) => {
     try {
-      // Encuentra el área por ID
-      const areaToUpdate = areas.find(area => area.id_area === id);
-      
-      if (!areaToUpdate) {
-        console.error("Error: Área no encontrada para actualizar estado");
+      console.log("Intentando actualizar usuario:", id_usuario, "Nuevo estado:", nuevoEstado);
+  
+      if (!id_usuario || !nuevoEstado) {
+        console.error("❌ Error: ID de usuario o estado faltante");
         return;
       }
-      
-      // Actualiza el estado localmente primero para una UI responsiva
+  
+      const requestBody = JSON.stringify({ id_usuario, estado: nuevoEstado });
+  
+      console.log("📤 Enviando datos al backend:", requestBody); // Agregar esto para verificar los datos enviados
+  
+      const response = await fetch('http://localhost/2da%20copia%20backend/backend/login3/editar_estado.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: id_usuario, // Asegurar que sea "id"
+          estado: nuevoEstado.toLowerCase(), // Asegurar que sea minúscula
+        }),
+      });
+  
+      const data = await response.json();
+      console.log("🔍 Respuesta del backend:", data);
+  
+      if (!response.ok || data.success === false) {
+        console.error("❌ Error en la actualización:", data.message);
+        return;
+      }
+  
       setAreas(prevAreas =>
         prevAreas.map(area =>
-          area.id_area === id ? { ...area, estado } : area
+          area.id_usuario === id_usuario ? { ...area, estado: nuevoEstado } : area
         )
       );
-      
+  
       setFilteredAreas(prevAreas =>
         prevAreas.map(area =>
-          area.id_area === id ? { ...area, estado } : area
+          area.id_usuario === id_usuario ? { ...area, estado: nuevoEstado } : area
         )
       );
-      
-      // Aquí podrías agregar la llamada a la API para actualizar el estado en el backend
-      // Por ejemplo:
-      // await areaService.updateAreaStatus(id, estado);
-      
-      console.log(`Estado del área ${id} actualizado a: ${estado}`);
+  
+      console.log(`✅ Estado del usuario ${id_usuario} actualizado a: ${nuevoEstado}`);
     } catch (error) {
-      console.error("Error al actualizar el estado del área:", error);
+      console.error("❌ Error al actualizar el estado del usuario:", error);
     }
   };
   
+
   return (
     <div>
       {/* Menú */}
@@ -299,24 +315,25 @@ const AdminAreas = () => {
                           
                         {/* Switch de estado */}
                         <fieldset id="switch" className="radio w-[50%] flex items-center">
-                          <input
-                            name={`switch-${area.id_area}`}
-                            id={`on-${area.id_area}`}
-                            type="radio"
-                            checked={area.estado === "activo"}
-                            onChange={() => handleRadioChange(area.id_area, "activo")}
-                          />
-                          <label htmlFor={`on-${area.id_area}`} className='text-[18px]'>Activo</label>
-                          <br />
-                          <input
-                            name={`switch-${area.id_area}`}
-                            id={`off-${area.id_area}`}
-                            type="radio"
-                            checked={area.estado === "inactivo"}
-                            onChange={() => handleRadioChange(area.id_area, "inactivo")}
-                          />
-                          <label htmlFor={`off-${area.id_area}`} className='text-[18px]'>Inactivo</label>
-                        </fieldset>
+                        <input
+  name={`switch-${area.id_usuario}`}
+  id={`on-${area.id_usuario}`}
+  type="radio"
+  checked={area.estado === "activo"}
+  onChange={() => handleRadioChange(area.id_usuario, "activo")}
+/>
+<label htmlFor={`on-${area.id_usuario}`} className='text-[18px]'>Activo</label>
+<br />
+<input
+  name={`switch-${area.id_usuario}`}
+  id={`off-${area.id_usuario}`}
+  type="radio"
+  checked={area.estado === "inactivo"}
+  onChange={() => handleRadioChange(area.id_usuario, "inactivo")}
+/>
+<label htmlFor={`off-${area.id_usuario}`} className='text-[18px]'>Inactivo</label>
+
+</fieldset>
                       </div>
                     </td>
                   </tr>
