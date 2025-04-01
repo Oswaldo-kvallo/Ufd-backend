@@ -82,10 +82,12 @@ const AdminInicio = () => {
             <span className="action-content" data-content="Áreas" />
           </Link>
 
+          {/*
           <Link to={'/admin_acceso'} className="action">
             <RxLapTimer className="action-icon" color="#353866" />
             <span className="action-content" data-content="Mis Accesos" />
           </Link>
+          */}
 
           <Link to={'/admin_registros'} className="action">
             <FaUsers className="action-icon" color="#353866" />

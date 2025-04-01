@@ -1,0 +1,43 @@
+/* Add these styles to your admin_areas.css file */
+
+.status-toggle-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  .status-label {
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    border: 1px solid transparent;
+  }
+  
+  .status-active {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    border: 1px solid #2E7D32;
+  }
+  
+  .status-inactive {
+    background-color: #F44336;
+    color: white;
+    font-weight: bold;
+    border: 1px solid #C62828;
+  }
+  
+  /* Hide the default radio buttons */
+  .status-toggle-container input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* Hover effect for better UX */
+  .status-label:hover:not(.status-active):not(.status-inactive) {
+    background-color: #EEEEEE;
+  }

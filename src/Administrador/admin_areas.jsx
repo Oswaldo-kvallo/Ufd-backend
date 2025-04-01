@@ -1,5 +1,6 @@
 import React from 'react'
-import '../StylesAdmin/admin_areas.css'
+import '../StylesAdmin/admin_areas.css';
+import '../StylesAdmin/btnActInact.css';
 import { useEffect, useState } from "react"; //agregue esto: useEffect,
 //Importar el api 
 import {areaService} from '../services/api';
@@ -283,10 +284,10 @@ const AdminAreas = () => {
             <table className='w-[100%]'>
               <thead>
                 <tr>
-                  <th className='border-2 border-basenaranja w-[10%]'>ID Área</th>
-                  <th className='border-2 border-basenaranja w-[20%]'>Área</th>
-                  <th className='border-2 border-basenaranja w-[20%]'>Usuario</th>
-                  <th className='border-2 border-basenaranja w-[20%]'>Contraseña</th>
+                  <th className='border-2 border-basenaranja w-[20%]'>ID Área</th>
+                  <th className='border-2 border-basenaranja w-[25%]'>Área</th>
+                  <th className='border-2 border-basenaranja w-[25%]'>Usuario</th>
+                  {/*<th className='border-2 border-basenaranja w-[20%]'>Contraseña</th>*/}
                   <th className='border-2 border-basenaranja w-[30%]'>Acción</th>
                 </tr>
               </thead>
@@ -296,7 +297,7 @@ const AdminAreas = () => {
                     <td className='border-2 border-basenaranja'>{area.id_area}</td>
                     <td className='border-2 border-basenaranja'>{area.nombre_area}</td>
                     <td className='border-2 border-basenaranja'>{area.nombre_usuario}</td>
-                    <td className='border-2 border-basenaranja'>{area.contrasena}</td>
+                    {/*<td className='border-2 border-basenaranja'>{area.contrasena}</td>*/}
                     <td className='border-2 border-basenaranja w-[100%]'>
                       <div className='flex'>
                         {/* Botón Editar */}
@@ -314,26 +315,24 @@ const AdminAreas = () => {
                         </button>
                           
                         {/* Switch de estado */}
-                        <fieldset id="switch" className="radio w-[50%] flex items-center">
-                        <input
-  name={`switch-${area.id_usuario}`}
-  id={`on-${area.id_usuario}`}
-  type="radio"
-  checked={area.estado === "activo"}
-  onChange={() => handleRadioChange(area.id_usuario, "activo")}
-/>
-<label htmlFor={`on-${area.id_usuario}`} className='text-[18px]'>Activo</label>
-<br />
-<input
-  name={`switch-${area.id_usuario}`}
-  id={`off-${area.id_usuario}`}
-  type="radio"
-  checked={area.estado === "inactivo"}
-  onChange={() => handleRadioChange(area.id_usuario, "inactivo")}
-/>
-<label htmlFor={`off-${area.id_usuario}`} className='text-[18px]'>Inactivo</label>
-
-</fieldset>
+                        <div className="status-toggle-wrapper">
+  <div className={`toggle-switch ${area.estado === "activo" ? "active" : "inactive"}`}>
+    <div className="toggle-label">
+      {area.estado === "activo" ? "ACTIVO" : "INACTIVO"}
+    </div>
+    <label className="switch">
+      <input
+        type="checkbox"
+        checked={area.estado === "activo"}
+        onChange={() => handleRadioChange(
+          area.id_usuario, 
+          area.estado === "activo" ? "inactivo" : "activo"
+        )}
+      />
+      <span className="slider"></span>
+    </label>
+  </div>
+</div>
                       </div>
                     </td>
                   </tr>
@@ -425,11 +424,11 @@ const AdminAreas = () => {
                   <label className="LabelRegistro3">Usuario</label>
                 </div>
 
-                <div className="input-container">
+                {/*<div className="input-container">
                   <input required type="password" name="constraseña" value={contrasena}
                   onChange={(e) => setContrasena(e.target.value)} autoComplete="off" className="InputRegistro4" />
                   <label className="LabelRegistro4">Contraseña</label>
-                </div>
+                </div>*/}
               </div>
 
               <div className='BotonRegistro flex items-center justify-center'>
