@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import { FaHome, FaUsers } from "react-icons/fa";
 import { TfiWorld } from "react-icons/tfi";
 import { RiLogoutCircleLine } from "react-icons/ri";
-import { RxLapTimer } from "react-icons/rx";
 
 const NavigationMenu = () => {
   const navigate = useNavigate();
@@ -23,7 +23,12 @@ const NavigationMenu = () => {
       const authResult = await authResponse.json();
       
       if (!authResult.success) {
-        alert("No hay sesión activa.");
+        Swal.fire({
+          title: 'No hay sesión activa',
+          text: 'Parece que ya habías cerrado sesión.',
+          icon: 'info',
+          confirmButtonText: 'Aceptar'
+        });
         return;
       }
 
@@ -38,15 +43,31 @@ const NavigationMenu = () => {
       const logoutResult = await logoutResponse.json();
       
       if (logoutResult.success) {
-        alert(logoutResult.message);
-        localStorage.removeItem('userRole');
-        navigate('/');
+        Swal.fire({
+          title: 'Sesión cerrada',
+          text: 'Tu sesión se ha cerrado correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar'
+        }).then(() => {
+          localStorage.removeItem('userRole');
+          navigate('/');
+        });
       } else {
-        alert("❌ Error en logout: " + logoutResult.message);
+        Swal.fire({
+          title: 'Error al cerrar sesión',
+          text: logoutResult.message,
+          icon: 'error',
+          confirmButtonText: 'Intentar de nuevo'
+        });
       }
     } catch (error) {
       console.error("❌ Error en logout:", error);
-      alert("Hubo un error al intentar cerrar sesión.");
+      Swal.fire({
+        title: 'Error',
+        text: 'Hubo un error al intentar cerrar sesión.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      });
     }
   }, [navigate]);
 
@@ -61,13 +82,6 @@ const NavigationMenu = () => {
         <TfiWorld className="action-icon" color="#353866" />
         <span className="action-content" data-content="Áreas" />
       </Link>
-
-      {/*
-      <Link to={'/admin_acceso'} className="action">
-        <RxLapTimer className="action-icon" color="#353866" />
-        <span className="action-content" data-content="Mis Accesos" />
-      </Link>
-      */}
 
       <Link to={'/admin_registros'} className="action">
         <FaUsers className="action-icon" color="#353866" />

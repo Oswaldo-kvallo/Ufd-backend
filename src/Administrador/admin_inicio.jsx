@@ -2,18 +2,17 @@ import React, { useCallback } from 'react';
 import { useNavigate } from "react-router-dom";
 import '../StylesAdmin/admin_inicio.css';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 // Iconos
 import { FaHome, FaUsers } from "react-icons/fa";
 import { TfiWorld } from "react-icons/tfi";
 import { RiLogoutCircleLine } from "react-icons/ri";
-import { RxLapTimer } from "react-icons/rx";
 
 const AdminInicio = () => {
   console.log("🔥 AdminInicio se ha renderizado!");
   const navigate = useNavigate();
 
-  // 🔥 useCallback para evitar recreación innecesaria
   const handleLogout = useCallback(async () => {
     console.log("🔥 handleLogout() fue llamado!");
 
@@ -25,14 +24,16 @@ const AdminInicio = () => {
         credentials: 'include',
       });
 
-      console.log("🔍 authResponse recibido:", authResponse);
       if (!authResponse.ok) throw new Error("Error en la autenticación");
 
       const authResult = await authResponse.json();
-      console.log("🔍 authResult:", authResult);
-
       if (!authResult.success) {
-        alert("No hay sesión activa.");
+        Swal.fire({
+          title: 'No hay sesión activa',
+          text: 'Parece que ya habías cerrado sesión.',
+          icon: 'info',
+          confirmButtonText: 'Aceptar'
+        });
         return;
       }
 
@@ -44,25 +45,40 @@ const AdminInicio = () => {
         credentials: 'include',
       });
 
-      console.log("🔍 Respuesta del logout:", logoutResponse);
       if (!logoutResponse.ok) throw new Error("Error en el logout");
 
       const logoutResult = await logoutResponse.json();
-      console.log("✅ Respuesta JSON del logout:", logoutResult);
 
       if (logoutResult.success) {
-        alert(logoutResult.message);
-        localStorage.removeItem('userRole'); // 🔥 Asegurar limpiar localStorage
-        navigate('/'); // 🔥 Redirigir correctamente con React Router
+        // Mostrar alerta de cierre de sesión exitoso
+        Swal.fire({
+          title: 'Sesión cerrada',
+          text: 'Tu sesión se ha cerrado correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar'
+        }).then(() => {
+          localStorage.removeItem('userRole'); // Limpiar localStorage
+          navigate('/'); // Redirigir a la página de inicio
+        });
       } else {
-        alert("❌ Error en logout: " + logoutResult.message);
+        Swal.fire({
+          title: 'Error al cerrar sesión',
+          text: logoutResult.message,
+          icon: 'error',
+          confirmButtonText: 'Intentar de nuevo'
+        });
       }
 
     } catch (error) {
       console.error("❌ Error en logout:", error);
-      alert("Hubo un error al intentar cerrar sesión.");
+      Swal.fire({
+        title: 'Error',
+        text: 'Hubo un error al intentar cerrar sesión.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      });
     }
-  }, [navigate]); // ✅ Dependencia correcta para mantener la referencia
+  }, [navigate]);
 
   return (
     <div>
@@ -82,19 +98,12 @@ const AdminInicio = () => {
             <span className="action-content" data-content="Áreas" />
           </Link>
 
-          {/*
-          <Link to={'/admin_acceso'} className="action">
-            <RxLapTimer className="action-icon" color="#353866" />
-            <span className="action-content" data-content="Mis Accesos" />
-          </Link>
-          */}
-
           <Link to={'/admin_registros'} className="action">
             <FaUsers className="action-icon" color="#353866" />
             <span className="action-content" data-content="Registro de Accesos" />
           </Link>
 
-          {/* 🔥 Reemplazar button+ref por un onClick directo */}
+          {/* Botón de logout con alerta */}
           <button className="action" onClick={handleLogout}>
             <RiLogoutCircleLine className="action-icon" color="#353866" />
             <span className="action-content" data-content="Salir" />

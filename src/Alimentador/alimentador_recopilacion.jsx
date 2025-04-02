@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from "react-router-dom";
-import '../StylesAlimentador/alimentador_recopilacion.css'
+import Swal from 'sweetalert2';
+import '../StylesAlimentador/alimentador_recopilacion.css';
 import { Link } from 'react-router-dom';
 
 {/* Iconos Menu */}
@@ -17,103 +18,116 @@ import { CiLink } from "react-icons/ci";
 import { TbTextRecognition } from "react-icons/tb";
 
 const AlimentadorRecopilacion = () => {
-  console.log("🔥 Alimentador Inicio se ha renderizado!");
-    const navigate = useNavigate();
-  
-    // 🔥 useCallback para evitar recreación innecesaria
-    const handleLogout = useCallback(async () => {
-      console.log("🔥 handleLogout() fue llamado!");
-  
-      try {
-        console.log("🔍 Verificando sesión antes de cerrar...");
-        const authResponse = await fetch('http://localhost/2da%20copia%20backend/backend/login3/auth.php', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
+  console.log("🔥 AlimentadorRecopilacion se ha renderizado!");
+  const navigate = useNavigate();
+
+  // ✅ useCallback para optimizar
+  const handleLogout = useCallback(async () => {
+    console.log("🔥 handleLogout() fue llamado!");
+
+    try {
+      console.log("🔍 Verificando sesión antes de cerrar...");
+      const authResponse = await fetch('http://localhost/2da%20copia%20backend/backend/login3/auth.php', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (!authResponse.ok) throw new Error("Error en la autenticación");
+      const authResult = await authResponse.json();
+      
+      if (!authResult.success) {
+        Swal.fire({
+          title: 'No hay sesión activa',
+          text: 'Parece que ya habías cerrado sesión.',
+          icon: 'info',
+          confirmButtonText: 'Aceptar'
         });
-  
-        console.log("🔍 authResponse recibido:", authResponse);
-        if (!authResponse.ok) throw new Error("Error en la autenticación");
-  
-        const authResult = await authResponse.json();
-        console.log("🔍 authResult:", authResult);
-  
-        if (!authResult.success) {
-          alert("No hay sesión activa.");
-          return;
-        }
-  
-        console.log("✅ Sesión activa, procediendo con logout...");
-  
-        const logoutResponse = await fetch('http://localhost/2da%20copia%20backend/backend/login3/logout.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        });
-  
-        console.log("🔍 Respuesta del logout:", logoutResponse);
-        if (!logoutResponse.ok) throw new Error("Error en el logout");
-  
-        const logoutResult = await logoutResponse.json();
-        console.log("✅ Respuesta JSON del logout:", logoutResult);
-  
-        if (logoutResult.success) {
-          alert(logoutResult.message);
-          localStorage.removeItem('userRole'); // 🔥 Asegurar limpiar localStorage
-          navigate('/'); // 🔥 Redirigir correctamente con React Router
-        } else {
-          alert("❌ Error en logout: " + logoutResult.message);
-        }
-  
-      } catch (error) {
-        console.error("❌ Error en logout:", error);
-        alert("Hubo un error al intentar cerrar sesión.");
+        return;
       }
-    }, [navigate]); // ✅ Dependencia correcta para mantener la referencia
-  
+
+      console.log("✅ Sesión activa, procediendo con logout...");
+      const logoutResponse = await fetch('http://localhost/2da%20copia%20backend/backend/login3/logout.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (!logoutResponse.ok) throw new Error("Error en el logout");
+      const logoutResult = await logoutResponse.json();
+      
+      if (logoutResult.success) {
+        Swal.fire({
+          title: 'Sesión cerrada',
+          text: 'Has cerrado sesión exitosamente.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar'
+        }).then(() => {
+          localStorage.removeItem('userRole');
+          navigate('/');
+        });
+      } else {
+        Swal.fire({
+          title: 'Error al cerrar sesión',
+          text: logoutResult.message,
+          icon: 'error',
+          confirmButtonText: 'Intentar de nuevo'
+        });
+      }
+    } catch (error) {
+      console.error("❌ Error en logout:", error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Hubo un error al intentar cerrar sesión.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      });
+    }
+  }, [navigate]);
+
   return (
     <div>
-        <div className='w-screen h-screen bg-baseazul flex'>
-          <div className="w-[6%] h-screen bg-baseazul flex items-center justify-center relative">
+      <div className='w-screen h-screen bg-baseazul flex'>
+        <div className="w-[6%] h-screen bg-baseazul flex items-center justify-center relative">
 
           {/* Menú izquierdo */}
           <div className="action-wrap bg-basenaranja z-10 flex flex-col items-start absolute left-3">
 
-            <Link to={'/alimentador_inicio'} className="action" type="button">
+            <Link to={'/alimentador_inicio'} className="action">
               <FaHome className="action-icon" color="#353866" />
               <span className="action-content" data-content="Inicio" />
             </Link>
 
-            <Link to={'/alimentador_recopilacion'} className="action" type="button">
+            <Link to={'/alimentador_recopilacion'} className="action">
               <BiSolidCollection className="action-icon" color="#353866" />
-              <span className="action-content" data-content="Recopilacion" />
+              <span className="action-content" data-content="Recopilación" />
             </Link>
 
-            <Link to={''} className="action" type="button">
+            <Link to={''} className="action">
               <IoMdCloudUpload className="action-icon" color="#353866" />
               <span className="action-content" data-content="Publicaciones" />
             </Link>
 
-            <Link to={''} className="action" type="button">
+            <Link to={''} className="action">
               <TbCategoryPlus className="action-icon" color="#353866" />
-              <span className="action-content" data-content="Categorias" />
+              <span className="action-content" data-content="Categorías" />
             </Link>
 
-            <Link className="action" onClick={handleLogout} type="button">
+            <button className="action" onClick={handleLogout}>
               <RiLogoutCircleLine className="action-icon" color="#353866" />
               <span className="action-content" data-content="Salir" />
-            </Link>
+            </button>
 
           </div>
         </div>
 
         <div className='w-[94%] h-screen'>
-          {/* Titulo */}
+          {/* Título */}
           <div className='titulo-recopilacion w-[100%] h-[15%]'>
             <h1 className='titulo-recopilaciones'>Recopilaciones del Usuario</h1>
           </div>
 
-          {/* Recopilación */}
+          {/* Sección de Recopilación */}
           <div className='w-[100%] h-[40%] flex justify-center'>
             <div className="cards w-[75%] h-[65%] mt-10">
 
@@ -164,10 +178,10 @@ const AlimentadorRecopilacion = () => {
               </div>
 
               <div className="card resumen">
-                  <div>
-                    <TbTextRecognition className='w-[40px] h-[40px] ml-[70px] text-basenaranja' />
-                    <p className="tip">Palabras Clave</p>
-                    <p className="second-text">87 palabras clave actualmente</p>
+                <div>
+                  <TbTextRecognition className='w-[40px] h-[40px] ml-[70px] text-basenaranja' />
+                  <p className="tip">Palabras Clave</p>
+                  <p className="second-text">87 palabras clave actualmente</p>
                 </div>
               </div>
 
@@ -176,7 +190,7 @@ const AlimentadorRecopilacion = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AlimentadorRecopilacion
+export default AlimentadorRecopilacion;

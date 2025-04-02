@@ -1,58 +1,67 @@
-import React, { useState } from 'react';//Le agregue esto , { useState }
+import React, { useState } from 'react';
 import '../StylesAdmin/login.css';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/authService'; //Le implemente esto
-
-/*import { useHistory } from 'react-router-dom';*///Le implemente esto
+import { authService } from '../services/authService';
+import Swal from 'sweetalert2';
 
 // Iconos
 import { FaUserCircle } from "react-icons/fa";
 import { MdOutlinePassword } from "react-icons/md";
 
 const Login = () => {
-  //Modificacion de acuerdo a chat
   const [nombre_usuario, setNombreUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  //Hasta aqui la modificacion
   const navigate = useNavigate();
 
-  //handleSubmit anterior con claude
-  /* const handleSubmit = (event) => {
-    event.preventDefault();
-    navigate("/admin_inicio");
-  }; */
-  //Este es el nuevo de acuerdo con chat
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       const response = await authService.login(nombre_usuario, contrasena);
       console.log(response); // Para depuración
-  
+
       if (response.success) {
         // Guardamos datos en localStorage
         localStorage.setItem('token', response.token);
         localStorage.setItem('userRole', response.rol);
         localStorage.setItem('userName', response.nombre_usuario);
         localStorage.setItem('userId', response.usuario_id);
-  
-        // Redirigir según el rol
-        if (response.rol === 'Administrador') {
-          navigate('/admin_inicio');
-        } else if (response.rol === 'Alimentador') {
-          navigate('/alimentador_inicio');
-        } else {
-          setErrorMessage('Rol no autorizado.');
-        }
+
+        // Mostrar alerta de éxito
+        Swal.fire({
+          title: '¡Bienvenido!',
+          text: `¡Has iniciado sesión correctamente!.`,
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+          timer: 2000, // Se cierra automáticamente en 2 segundos
+          showConfirmButton: false
+        });
+
+        // Redirigir según el rol después de la alerta
+        setTimeout(() => {
+          if (response.rol === 'Administrador') {
+            navigate('/admin_inicio');
+          } else if (response.rol === 'Alimentador') {
+            navigate('/alimentador_inicio');
+          }
+        }, 2000);
       } else {
-        setErrorMessage(response.message);
+        // Mostrar alerta de error si la autenticación falla
+        Swal.fire({
+          title: 'Error',
+          text: response.message,
+          icon: 'error',
+          confirmButtonText: 'Intentar de nuevo'
+        });
       }
     } catch (error) {
-      setErrorMessage('Error en la autenticación. Intente nuevamente.');
+      Swal.fire({
+        title: 'Error en la autenticación',
+        text: 'Intente nuevamente.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      });
     }
   };
-  
-  
 
   return (
     <div>
@@ -62,7 +71,7 @@ const Login = () => {
           <img src="./public/Logo.png" alt="Logo" />
         </div>
 
-        {/* Lado derecho con formulario de sesion */}
+        {/* Lado derecho con formulario de sesión */}
         <div className='w-[50%] h-screen bg-basenaranja flex items-center justify-center'>
           <form className="form_main" onSubmit={handleSubmit}>
             <p className="heading">Acceso Administrador</p>
@@ -74,7 +83,6 @@ const Login = () => {
               <MdOutlinePassword className="inputIcon" width={20} height={20} fill="#ED6B06" />
               <input type="password" className="inputField" id="password" placeholder="Contraseña" value={contrasena} onChange={(e)=> setContrasena(e.target.value)}/>
             </div>
-            {errorMessage && <p className="error">{errorMessage}</p>} {/* Muestra mensaje de error */}
             <button id="button" type="submit">Acceder</button>
           </form>
         </div>

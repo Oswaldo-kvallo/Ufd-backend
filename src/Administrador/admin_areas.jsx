@@ -114,8 +114,14 @@ const AdminAreas = () => {
         nombre_area: area.nombre_area || "SIN_NOMBRE",
         nombre_usuario: area.nombre_usuario || "SIN_USUARIO",
         contrasena: area.contrasena || "",
-        estado: area.estado_usuario || "activo", // Asegurarnos de que el estado tiene un valor por defecto
-      }));
+
+        estado: area.estado 
+        ? area.estado.toLowerCase().trim() === "activo" ? "activo" : "inactivo"
+        : (area.estado_usuario 
+            ? area.estado_usuario.toLowerCase().trim() === "activo" ? "activo" : "inactivo"
+            : "inactivo")
+          }));
+          console.log("Áreas normalizadas con estados:", areasNormalizadas);    
       setAreas(areasNormalizadas);
       setFilteredAreas(areasNormalizadas); // Inicializar también las áreas filtradas
     } catch (error) {
@@ -182,53 +188,64 @@ const AdminAreas = () => {
   };
   
   // Función para manejar el cambio de estado (activo/inactivo)
-  const handleRadioChange = async (id_usuario, nuevoEstado) => {
-    try {
-      console.log("Intentando actualizar usuario:", id_usuario, "Nuevo estado:", nuevoEstado);
-  
-      if (!id_usuario || !nuevoEstado) {
-        console.error("❌ Error: ID de usuario o estado faltante");
-        return;
-      }
-  
-      const requestBody = JSON.stringify({ id_usuario, estado: nuevoEstado });
-  
-      console.log("📤 Enviando datos al backend:", requestBody); // Agregar esto para verificar los datos enviados
-  
-      const response = await fetch('http://localhost/2da%20copia%20backend/backend/login3/editar_estado.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: id_usuario, // Asegurar que sea "id"
-          estado: nuevoEstado.toLowerCase(), // Asegurar que sea minúscula
-        }),
-      });
-  
-      const data = await response.json();
-      console.log("🔍 Respuesta del backend:", data);
-  
-      if (!response.ok || data.success === false) {
-        console.error("❌ Error en la actualización:", data.message);
-        return;
-      }
-  
-      setAreas(prevAreas =>
-        prevAreas.map(area =>
-          area.id_usuario === id_usuario ? { ...area, estado: nuevoEstado } : area
-        )
-      );
-  
-      setFilteredAreas(prevAreas =>
-        prevAreas.map(area =>
-          area.id_usuario === id_usuario ? { ...area, estado: nuevoEstado } : area
-        )
-      );
-  
-      console.log(`✅ Estado del usuario ${id_usuario} actualizado a: ${nuevoEstado}`);
-    } catch (error) {
-      console.error("❌ Error al actualizar el estado del usuario:", error);
+  // Updated handleRadioChange function
+
+const handleRadioChange = async (id_usuario, nuevoEstado) => {
+  try {
+    console.log("Intentando actualizar usuario:", id_usuario, "Nuevo estado:", nuevoEstado);
+
+    if (!id_usuario || !nuevoEstado) {
+      console.error("❌ Error: ID de usuario o estado faltante");
+      return;
     }
-  };
+
+    // Asegurarse de que nuevoEstado sea "activo" o "inactivo" en minúsculas
+    const estadoNormalizado = nuevoEstado.toLowerCase().trim();
+    if (estadoNormalizado !== "activo" && estadoNormalizado !== "inactivo") {
+      console.error("❌ Error: Estado inválido. Debe ser 'activo' o 'inactivo'");
+      return;
+    }
+
+    console.log("📤 Enviando datos al backend:", {
+      id: id_usuario,
+      estado: estadoNormalizado
+    });
+
+    const response = await fetch('http://localhost/2da%20copia%20backend/backend/login3/editar_estado.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: id_usuario,
+        estado: estadoNormalizado,
+      }),
+    });
+
+    const data = await response.json();
+    console.log("🔍 Respuesta del backend:", data);
+
+    if (!response.ok || data.success === false) {
+      console.error("❌ Error en la actualización:", data.message);
+      return;
+    }
+
+    // Update local state only after successful backend update
+    setAreas(prevAreas =>
+      prevAreas.map(area =>
+        area.id_usuario === id_usuario ? { ...area, estado: estadoNormalizado } : area
+      )
+    );
+
+    setFilteredAreas(prevAreas =>
+      prevAreas.map(area =>
+        area.id_usuario === id_usuario ? { ...area, estado: estadoNormalizado } : area
+      )
+    );
+
+    console.log(`✅ Estado del usuario ${id_usuario} actualizado a: ${estadoNormalizado}`);
+  } catch (error) {
+    console.error("❌ Error al actualizar el estado del usuario:", error);
+  }
+};
   
 
   return (
@@ -315,25 +332,20 @@ const AdminAreas = () => {
                         </button>
                           
                         {/* Switch de estado */}
-                        <div className="status-toggle-wrapper">
-  <div className={`toggle-switch ${area.estado === "activo" ? "active" : "inactive"}`}>
-    <div className="toggle-label">
-      {area.estado === "activo" ? "ACTIVO" : "INACTIVO"}
+                        <div className="w-[50%] flex justify-center items-center">
+      <div className={`status-toggle ${area.estado === "activo" ? "toggle-active" : "toggle-inactive"}`}>
+        <span className="status-label">{area.estado === "activo" ? "ACTIVO" : "INACTIVO"}</span>
+        <label className="switch">
+          <input
+            type="checkbox"
+            checked={area.estado === "activo"}
+            onChange={() => handleRadioChange(area.id_usuario, area.estado === "activo" ? "inactivo" : "activo")}
+          />
+          <span className="slider round"></span>
+        </label>
+      </div>
     </div>
-    <label className="switch">
-      <input
-        type="checkbox"
-        checked={area.estado === "activo"}
-        onChange={() => handleRadioChange(
-          area.id_usuario, 
-          area.estado === "activo" ? "inactivo" : "activo"
-        )}
-      />
-      <span className="slider"></span>
-    </label>
   </div>
-</div>
-                      </div>
                     </td>
                   </tr>
                 ))}
