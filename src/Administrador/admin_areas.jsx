@@ -7,6 +7,7 @@ import {areaService} from '../services/api';
 //importar axios
 import axios from 'axios';
 import NavigationMenu from './NavigationMenu';
+import Swal from 'sweetalert2';
 
 {/* Iconos */}
 import { FaHome } from "react-icons/fa";
@@ -178,12 +179,40 @@ const AdminAreas = () => {
   
       // Llamada al servicio para actualizar
       const response = await areaService.updateUserAndArea(usuarioData, areaData);
-      console.log("Respuesta de actualizacion:", response);
-      // Recargar la lista de áreas después de la actualización
-      await fetchAreas();
-      setIsEditOpen(false);
+      console.log("Respuesta de actualización:", response);
+  
+      // 📌 Si la respuesta indica que el nombre del área ya existe
+      if (response.error && response.message.includes("ya existe")) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'El nombre del área ya está en uso. Elige otro nombre.',
+          confirmButtonColor: '#d33',
+        });
+        return;
+      }
+  
+      // Si la actualización fue exitosa
+      if (response.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Actualización exitosa',
+          text: 'El área y/o usuario actualizado correctamente.',
+          confirmButtonColor: '#3085d6',
+        });
+  
+        await fetchAreas(); // Recargar la lista de áreas después de la actualización
+        setIsEditOpen(false);
+      }
+  
     } catch (error) {
       console.error("Error al actualizar área y usuario:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El nombre del área ya existe.',
+        confirmButtonColor: '#d33',
+      });
     }
   };
   
