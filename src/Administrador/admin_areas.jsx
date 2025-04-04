@@ -290,11 +290,11 @@ const handleRadioChange = async (id_usuario, nuevoEstado) => {
           <div className='w-[100%] h-[15%] flex'>
             <h1 id='titulo-areas'>Áreas Registradas</h1>
 
-            <button onClick={openModal}>
+            {/*<button onClick={openModal}>
               <span className="box">
               Registrar Área
               </span>
-            </button>
+            </button>*/}
           </div>
 
           {/* Buscador */}

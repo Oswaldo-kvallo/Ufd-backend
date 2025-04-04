@@ -74,7 +74,7 @@ const Login = () => {
         {/* Lado derecho con formulario de sesión */}
         <div className='w-[50%] h-screen bg-basenaranja flex items-center justify-center'>
           <form className="form_main" onSubmit={handleSubmit}>
-            <p className="heading">Acceso Administrador</p>
+            <p className="heading">Acceso UFD Sistema</p>
             <div className="inputContainer">
               <FaUserCircle className="inputIcon" width={20} height={20} fill="#ED6B06" />
               <input type="text" className="inputField" id="username" placeholder="Usuario" value={nombre_usuario} onChange={(e)=> setNombreUsuario(e.target.value)}/>

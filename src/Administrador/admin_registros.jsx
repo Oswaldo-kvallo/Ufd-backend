@@ -114,7 +114,7 @@ const AdminRegistros = () => {
         {/* Titulo */}
         <div className='w-[94%] h-screen'>
           <div className='w-[100%] h-[15%] flex'>
-            <h1 id='titulo-registros'>Registros de Accesos Alimentadores</h1>
+            <h1 id='titulo-registros'>Registros de Accesos</h1>
           </div>
 
           {/* Buscador */}
